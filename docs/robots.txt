@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://ncrashed.github.io/dividend-tools/sitemap.xml

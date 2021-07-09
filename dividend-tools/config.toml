@@ -1,0 +1,28 @@
+# The URL the site will be built for
+base_url = "https://ncrashed.github.io/dividend-tools/"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = true
+
+theme = "anpu"
+title = "Montelibero helper tools"
+description = "Provides online tooling for Stellar transactions"
+generate_feed = false
+
+taxonomies = [
+    {name = "tags", rss = true},
+    {name = "categories", rss = true},
+]
+
+[extra]
+anpu_date_format="%e %B %Y"
+anpu_menu_links = [
+    { url = "$BASE_URL/shareholders/", name = "Shareholders" },
+]
