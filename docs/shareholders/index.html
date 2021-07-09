@@ -10,6 +10,8 @@
     <meta name="description" content="Provides online tooling for Stellar transactions">
 
     <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;main.css">
+    <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;custom.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
 
     
 
@@ -19,7 +21,7 @@
 <body>
     <a class="skip-main" href="#main">Skip to content</a>
     <div class="container">
-        <header> 
+        <header>
             <h1 class="site-header">
                 <a href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;">Montelibero helper tools</a>
             </h1>
@@ -40,7 +42,22 @@
         <h1>Shareholders</h1>
     </header>
     <div class="content">
-        <p>Hello, World!</p>
+        <script src="/js/shareholders.js" defer></script>
+<table id="shareholders-table" class="display">
+  <thead>
+    <tr>
+      <th>Account</th>
+      <th>MTL</th>
+      <th>Share</th>
+      <th>Has EURMTL</th>
+    </tr>
+  </thead>
+  <tbody>
+</tbody>
+</table>
+<script>
+  window.onload = function(){ drawShareholders(); };
+</script>
 
     </div>
 
@@ -68,5 +85,11 @@
             </p>
         </footer>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/8.2.3/stellar-sdk.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    			  crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+    <script src="/js/global.js"></script>
 </body>
 </html>
