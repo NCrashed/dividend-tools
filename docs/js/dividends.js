@@ -8,8 +8,11 @@ async function makeDividendsTx(amount, memo, mtl, eurmtl) {
   const account = await server.loadAccount(mtl_foundation);
   const fee = await server.fetchBaseFee();
 
-  memo = StellarSdk.Memo.text(memo);
-  var builder = new StellarSdk.TransactionBuilder(account, { memo, fee, networkPassphrase: StellarSdk.Networks.PUBLIC });
+  var options = { fee, networkPassphrase: StellarSdk.Networks.PUBLIC };
+  if (memo.length > 0) {
+      options.memo = StellarSdk.Memo.text(memo);
+  }
+  var builder = new StellarSdk.TransactionBuilder(account, options);
 
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
@@ -42,15 +45,22 @@ async function makeDividendsTx(amount, memo, mtl, eurmtl) {
 async function drawDividends() {
   $( "#view-laboratory" ).hide();
   $( "#dividend-gen" ).click(async function() {
-    var amount = parseFloat($( "input[name='dividends-amount']").val());
-    var memo = $( "input[name='dividends-memo']").val();
-    console.log("Generating tx for", amount, "EURMTL and memo: ", memo);
-    var tx = await makeDividendsTx(amount, memo);
-    $('#dividend-tx').html(tx);
-    $('#view-laboratory').show();
-    $('#view-laboratory').click(function() {
-      window.location = "https://laboratory.stellar.org/#xdr-viewer?type=TransactionEnvelope&network=public&input=" + encodeURIComponent(tx);
-    })
+    try {
+      $('#tx-error').html("");
+
+      var amount = parseFloat($( "input[name='dividends-amount']").val());
+      var memo = $( "input[name='dividends-memo']").val();
+      console.log("Generating tx for", amount, "EURMTL and memo: ", memo);
+      var tx = await makeDividendsTx(amount, memo);
+
+      $('#dividend-tx').html(tx);
+      $('#view-laboratory').show();
+      $('#view-laboratory').click(function() {
+        window.location = "https://laboratory.stellar.org/#xdr-viewer?type=TransactionEnvelope&network=public&input=" + encodeURIComponent(tx);
+      })
+    } catch(err) {
+      $('#tx-error').html(err);
+    }
   });
 
 

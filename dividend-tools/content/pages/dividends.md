@@ -13,6 +13,7 @@ template = "page.html"
 <button id="dividend-gen" class="btn success">Generate transaction</button>
 <button id="view-laboratory" class="btn success">View in laboratory</button>
 
+<div id="tx-error"></div>
 <div id="dividend-tx"></div>
 
 <script>
