@@ -1,4 +1,4 @@
-async function makeDividendsTx(amount, mtl, eurmtl) {
+async function makeDividendsTx(amount, memo, mtl, eurmtl) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
 
@@ -8,7 +8,8 @@ async function makeDividendsTx(amount, mtl, eurmtl) {
   const account = await server.loadAccount(mtl_foundation);
   const fee = await server.fetchBaseFee();
 
-  var builder = new StellarSdk.TransactionBuilder(account, { fee, networkPassphrase: StellarSdk.Networks.PUBLIC });
+  memo = StellarSdk.Memo.text(memo);
+  var builder = new StellarSdk.TransactionBuilder(account, { memo, fee, networkPassphrase: StellarSdk.Networks.PUBLIC });
 
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
@@ -28,7 +29,6 @@ async function makeDividendsTx(amount, mtl, eurmtl) {
     }
   );
 
-
   const transaction = builder
         .setTimeout(30)
         .build();
@@ -43,8 +43,9 @@ async function drawDividends() {
   $( "#view-laboratory" ).hide();
   $( "#dividend-gen" ).click(async function() {
     var amount = parseFloat($( "input[name='dividends-amount']").val());
-    console.log("Generating tx for", amount, "EURMTL");
-    var tx = await makeDividendsTx(amount);
+    var memo = $( "input[name='dividends-memo']").val();
+    console.log("Generating tx for", amount, "EURMTL and memo: ", memo);
+    var tx = await makeDividendsTx(amount, memo);
     $('#dividend-tx').html(tx);
     $('#view-laboratory').show();
     $('#view-laboratory').click(function() {

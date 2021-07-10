@@ -8,6 +8,8 @@ template = "page.html"
 
 <label for="dividends-amount">EURMTL to spread: </label>
 <input type="text" id="dividends-amount" name="dividends-amount" value="10"/>
+<label for="dividends-memo">Memo: </label>
+<input type="text" id="dividends-memo" name="dividends-memo"/>
 <button id="dividend-gen" class="btn success">Generate transaction</button>
 <button id="view-laboratory" class="btn success">View in laboratory</button>
 
