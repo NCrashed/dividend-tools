@@ -1,6 +1,7 @@
-async function loadShareholders() {
-  var mtl = await getMtlAsset();
-  var eurmtl = await getEurMtlAsset();
+async function loadShareholders(mtl, eurmtl) {
+  mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
+  eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
+
   try {
     let accounts = await server
       .accounts()

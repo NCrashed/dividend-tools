@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
 
-    <title>Montelibero helper tools</title>
+    <title>Dividends</title>
     <meta name="description" content="Provides online tooling for Stellar transactions">
 
     <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;main.css">
@@ -39,10 +39,37 @@
         </header>
         <main id="main" tabindex="-1">
             
-                
-                
-                
+
+<article class="post">
+    <header>
+        <h1>Dividends</h1>
+    </header>
+    <div class="content">
+        <script src="/js/shareholders.js" defer></script>
+<script src="/js/dividends.js" defer></script>
+<p><label for="dividends-amount">EURMTL to spread: </label>
+<input type="text" id="dividends-amount" name="dividends-amount" value="10"/>
+<button id="dividend-gen" class="btn success">Generate transaction</button>
+<button id="view-laboratory" class="btn success">View in laboratory</button></p>
+<div id="dividend-tx"></div>
+<script>
+  window.onload = function(){ drawDividends(); };
+</script>
+
+    </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-taxonomies">
             
+            
+        </div>
+    </div>
+
+</article>
+
+
         </main>
         <footer>
             <p>

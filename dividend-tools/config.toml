@@ -25,4 +25,5 @@ taxonomies = [
 anpu_date_format="%e %B %Y"
 anpu_menu_links = [
     { url = "$BASE_URL/shareholders/", name = "Shareholders" },
+    { url = "$BASE_URL/dividends/", name = "Dividends" },
 ]
