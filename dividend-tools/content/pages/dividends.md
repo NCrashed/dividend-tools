@@ -3,8 +3,8 @@ title = "Dividends"
 path = "dividends"
 template = "page.html"
 +++
-<script src="/js/shareholders.js" defer></script>
-<script src="/js/dividends.js" defer></script>
+<script src="../js/shareholders.js" defer></script>
+<script src="../js/dividends.js" defer></script>
 
 <label for="dividends-amount">EURMTL to spread: </label>
 <input type="text" id="dividends-amount" name="dividends-amount" value="10"/>

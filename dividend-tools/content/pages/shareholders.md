@@ -3,7 +3,7 @@ title = "Shareholders"
 path = "shareholders"
 template = "page.html"
 +++
-<script src="/js/shareholders.js" defer></script>
+<script src="../js/shareholders.js" defer></script>
 
 <table id="shareholders-table" class="display">
   <thead>
