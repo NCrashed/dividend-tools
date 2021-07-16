@@ -33,7 +33,7 @@ async function makeDividendsTx(amount, memo, mtl, eurmtl) {
   );
 
   const transaction = builder
-        .setTimeout(30)
+        .setTimeout(StellarSdk.TimeoutInfinite)
         .build();
 
   return transaction
