@@ -3,15 +3,21 @@ async function loadShareholders(mtl, eurmtl) {
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
 
   try {
-    let accounts = await server
-      .accounts()
-      .forAsset("MTL:" + mtl.asset_issuer)
-      .limit(100)
-      .call();
+    let page = 100;
+    var accumulated_accounts = [];
+    var request = server
+          .accounts()
+          .forAsset("MTL:" + mtl.asset_issuer)
+          .limit(page)
+          .call();
+    var accounts = [];
+    do { 
+      accounts = await request;
+      accumulated_accounts = accumulated_accounts.concat(accounts.records);
+      request = accounts.next();
+    } while(accounts.records.length > 0)
 
-    console.log(accounts);
-
-    let data = accounts.records.map(a => ({
+    let data = accumulated_accounts.map(a => ({
       account_id: a.account_id,
       mtl_balance: parseFloat(a.balances.find(b => b.asset_code == "MTL" && b.asset_issuer == mtl.asset_issuer).balance),
       mtl_share: 0.0,
