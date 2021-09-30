@@ -12,6 +12,14 @@ function getBalance(account, asset) {
   }
 }
 
+function log2(x) {
+  return Math.log(x) / Math.log(2);
+}
+
+function calcLogVote(x) {
+  return Math.round(Math.max(0, log2(x / 100)));
+}
+
 async function loadAssetAccounts(asset, accumulated_accounts) {
   let page = 100;
   var request = server
@@ -55,20 +63,37 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
       account_id: a.account_id,
       mtl_balance: getBalance(a, mtl),
       mtl_share: 0.0,
+      mtl_vote: 0.0,
       mtl_city_balance: getBalance(a, mtl_city),
+      mtl_city_indirect: 0.0,
       mtl_city_share: 0.0,
+      mtl_city_vote: 0.0,
       has_eurmtl: hasBalance(a, eurmtl),
     })).filter(a => a.account_id != mtl_foundation);
 
-    let total_mtl = data.reduce((acc, a) => acc + a.mtl_balance, 0.0);
-    console.log("Total MTL hodl: ", total_mtl);
-    let total_mtl_city = data.reduce((acc, a) => acc + a.mtl_city_balance, 0.0);
-    console.log("Total MTLCITY hodl: ", total_mtl_city);
-  
-    data = data.map( a => { a.mtl_share = a.mtl_balance / total_mtl; return a } );
-    data = data.map( a => { a.mtl_city_share = a.mtl_city_balance / total_mtl_city; return a } );
+    let mtl_total = data.reduce((acc, a) => acc + a.mtl_balance, 0.0);
+    console.log("Total MTL hodl: ", mtl_total);
+    let distributed_city = data.reduce((acc, a) => acc + a.mtl_city_balance, 0.0);
+    console.log("Distributed MTLCITY hodl: ", distributed_city);
+    let foundation_account = accumulated_accounts.get(mtl_foundation);
+    let mtl_city_foundation = 0;
+    if (foundation_account) {
+      mtl_city_foundation = getBalance(foundation_account, mtl_city);
+    }
+    console.log("Foundation has ", mtl_city_foundation, " MTLCITY");
+    let mtl_city_total = distributed_city + mtl_city_foundation;
+    console.log("Total MTLCITY: ", mtl_city_total);
 
-    return data;
+    data = data.map( a => { 
+      a.mtl_share = a.mtl_balance / mtl_total; 
+      a.mtl_city_indirect = a.mtl_share * mtl_city_foundation;
+      a.mtl_city_share = (a.mtl_city_balance + a.mtl_city_indirect) / mtl_city_total;
+      a.mtl_vote = calcLogVote(a.mtl_balance); 
+      a.mtl_city_vote = calcLogVote(a.mtl_city_balance + a.mtl_city_indirect);
+      return a;
+    });
+
+    return { holders: data, mtl_total, distributed_city, mtl_city_foundation, mtl_city_total };
   } catch(err) {
     console.error(err);
   }
@@ -78,13 +103,21 @@ async function drawShareholders() {
   try {
     var data = await loadShareholders();
     // console.log(data);
-    var data = data.map(a => [
+    $("#mtl_total").text(data.mtl_total);
+    $("#distributed_city").text(data.distributed_city);
+    $("#mtl_city_foundation").text(data.mtl_city_foundation);
+    $("#mtl_city_total").text(data.mtl_city_total);
+
+    var data = data.holders.map(a => [
       '<a href="https://stellar.expert/explorer/public/account/' +
         a.account_id + '">' + a.account_id.substring(0,10) + '...' + a.account_id.substr(a.account_id.length - 10) + '</a>',
       a.mtl_balance,
       (a.mtl_share * 100).toFixed(3).toString() + "%",
+      a.mtl_vote,
       a.mtl_city_balance,
+      a.mtl_city_indirect,
       (a.mtl_city_share * 100).toFixed(3).toString() + "%",
+      a.mtl_city_vote,
       a.has_eurmtl,
       ]);
     var table = $('#shareholders-table').DataTable({
@@ -92,7 +125,7 @@ async function drawShareholders() {
         pageLength: 100,
         order: [[ 1, 'desc' ]],
     });
-
+    
   } catch(err) {
     console.error(err);
   }
