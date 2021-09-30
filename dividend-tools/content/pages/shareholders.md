@@ -10,7 +10,9 @@ template = "page.html"
     <tr>
       <th>Account</th>
       <th>MTL</th>
-      <th>Share</th>
+      <th>MTL Share</th>
+      <th>MTLCITY</th>
+      <th>MTLCITY Share</th>
       <th>Has EURMTL</th>
     </tr>
   </thead>
