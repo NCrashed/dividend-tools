@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
 
-    <title>Montelibero helper tools</title>
+    <title>Votes</title>
     <meta name="description" content="Provides online tooling for Stellar transactions">
 
     <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;main.css">
@@ -45,14 +45,50 @@
         </header>
         <main id="main" tabindex="-1">
             
+
 <article class="post">
     <header>
-        <h1>404: Page not found</h1>
+        <h1>Votes</h1>
     </header>
     <div class="content">
-        Sorry, this page doesn't seem to exist.
+        <script src="../js/shareholders.js" defer></script>
+<script src="../js/votes.js" defer></script>
+<p><label for="votes-memo">Memo: </label>
+<input type="text" id="votes-memo" name="votes-memo"/>
+<button id="dividend-gen" class="btn success">Generate transaction</button>
+<button id="view-laboratory" class="btn success">View in laboratory</button></p>
+<div id="tx-error"></div>
+<div id="votes-tx"></div>
+<table id="votes-table" class="display">
+  <thead>
+    <tr>
+      <th>Account</th>
+      <th>MTL votes expected</th>
+      <th>MTL votes blockchain</th>
+      <th>MTLCITY votes expected</th>
+      <th>MTLCITY votes blockchain</th>
+    </tr>
+  </thead>
+  <tbody>
+</tbody>
+</table>
+<script>
+  window.onload = function(){ drawVotes(); };
+</script>
+
     </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-taxonomies">
+            
+            
+        </div>
+    </div>
+
 </article>
+
 
         </main>
         <footer>

@@ -10,6 +10,8 @@ template = "page.html"
 <input type="text" id="dividends-amount" name="dividends-amount" value="10"/>
 <label for="dividends-memo">Memo: </label>
 <input type="text" id="dividends-memo" name="dividends-memo"/>
+<label for="dividends-offset">Offset: </label>
+<input type="text" id="dividends-offset" name="dividends-offset" value="0"/>
 <button id="dividend-gen" class="btn success">Generate transaction</button>
 <button id="view-laboratory" class="btn success">View in laboratory</button>
 

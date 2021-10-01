@@ -1,4 +1,4 @@
-async function makeDividendsTx(amount, memo, mtl, mtl_city, eurmtl) {
+async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
@@ -19,7 +19,9 @@ async function makeDividendsTx(amount, memo, mtl, mtl_city, eurmtl) {
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
       // console.log("Funding", a.account_id, "with", dividendAmount);
-      if (dividendAmount > 0 && a.has_eurmtl) {
+      if (offset > 0) {
+        offset = offset - 1;
+      } else if (dividendAmount > 0 && a.has_eurmtl) {
         if (i < 100) {
           builder.addOperation(
             StellarSdk.Operation.payment({
@@ -33,7 +35,7 @@ async function makeDividendsTx(amount, memo, mtl, mtl_city, eurmtl) {
           );
           i += 1;
         } else {
-          console.log("WARNING! There are limit of 100 operations. Distirbution of", dividendAmount, "EURMTL skipped!");
+          console.log("WARNING! There is limit of 100 operations. Distirbution to", a.account_id, "of", dividendAmount, "EURMTL skipped!");
         }
       } 
     }
@@ -57,8 +59,9 @@ async function drawDividends() {
 
       var amount = parseFloat($( "input[name='dividends-amount']").val());
       var memo = $( "input[name='dividends-memo']").val();
-      console.log("Generating tx for", amount, "EURMTL and memo: ", memo);
-      var tx = await makeDividendsTx(amount, memo);
+      var offset = parseInt($( "input[name='dividends-offset']").val());
+      console.log("Generating tx for", amount, "EURMTL and memo: ", memo, " offset:", offset);
+      var tx = await makeDividendsTx(amount, memo, offset);
 
       $('#dividend-tx').html(tx);
       $('#view-laboratory').show();
