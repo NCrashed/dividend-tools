@@ -36,7 +36,7 @@ async function drawVotes() {
       $("#mtl_city_votes_total").text(data.mtl_city_votes_total);
       $("#mtl_city_votes_threshold").text(data.mtl_city_votes_threshold);
 
-      data = data.holders.filter(a => a.mtl_vote + a.mtl_city_vote > 0);
+      data = data.holders.filter(a => a.mtl_vote + a.mtl_city_vote + a.mtl_vote_blockchain + a.mtl_issuer_vote_blockchain + a.mtl_city_vote_blockchain  > 0);
   
       var data = data.map(a => [
         makeAccountUrl(a.account_id),
