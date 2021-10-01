@@ -10,6 +10,13 @@ template = "page.html"
 <h4>Foundation MTLCITY: <span id="mtl_city_foundation"></span></h4>
 <h4>Total MTLCITY: <span id="mtl_city_total"></span></h4>
 
+<br>
+
+<h4>MTL votes: <span id="mtl_votes_total"></span></h4>
+<h4>MTL threshold: <span id="mtl_votes_threshold"></span></h4>
+<h4>MTLCITY votes: <span id="mtl_city_votes_total"></span></h4>
+<h4>MTLCITY threshold: <span id="mtl_city_votes_threshold"></span></h4>
+
 <table id="shareholders-table" class="display">
   <thead>
     <tr>

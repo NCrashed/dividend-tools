@@ -6,6 +6,11 @@ template = "page.html"
 <script src="../js/shareholders.js" defer></script>
 <script src="../js/votes.js" defer></script>
 
+<h4>MTL votes: <span id="mtl_votes_total"></span></h4>
+<h4>MTL threshold: <span id="mtl_votes_threshold"></span></h4>
+<h4>MTLCITY votes: <span id="mtl_city_votes_total"></span></h4>
+<h4>MTLCITY threshold: <span id="mtl_city_votes_threshold"></span></h4>
+
 <label for="votes-memo">Memo: </label>
 <input type="text" id="votes-memo" name="votes-memo"/>
 <button id="dividend-gen" class="btn success">Generate transaction</button>

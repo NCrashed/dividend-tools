@@ -93,7 +93,19 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
       return a;
     });
 
-    return { holders: data, mtl_total, distributed_city, mtl_city_foundation, mtl_city_total };
+    let mtl_votes_total = data.reduce((acc, a) => acc + a.mtl_vote, 0.0);
+    let mtl_city_votes_total = data.reduce((acc, a) => acc + a.mtl_city_vote, 0.0);
+    let mtl_votes_threshold = Math.ceil(mtl_votes_total / 2);
+    let mtl_city_votes_threshold = Math.ceil(mtl_city_votes_total / 2);
+    
+    return { holders: data, 
+      mtl_total, distributed_city, 
+      mtl_city_foundation, 
+      mtl_city_total, 
+      mtl_votes_total, 
+      mtl_city_votes_total, 
+      mtl_votes_threshold, 
+      mtl_city_votes_threshold };
   } catch(err) {
     console.error(err);
   }
@@ -112,6 +124,10 @@ async function drawShareholders() {
     $("#distributed_city").text(data.distributed_city);
     $("#mtl_city_foundation").text(data.mtl_city_foundation);
     $("#mtl_city_total").text(data.mtl_city_total);
+    $("#mtl_votes_total").text(data.mtl_votes_total);
+    $("#mtl_votes_threshold").text(data.mtl_votes_threshold);
+    $("#mtl_city_votes_total").text(data.mtl_city_votes_total);
+    $("#mtl_city_votes_threshold").text(data.mtl_city_votes_threshold);
 
     var data = data.holders.map(a => [
       makeAccountUrl(a.account_id),
