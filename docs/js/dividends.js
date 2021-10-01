@@ -4,7 +4,7 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
 
   var shares = (await loadShareholders(mtl, mtl_city, eurmtl)).holders;
-  shares = shares.filter(a => a.mtl_balance > 0);
+  shares = shares.filter(a => a.mtl_balance > 0 && a.has_eurmtl);
   shares = shares.sort((a, b) => b.mtl_balance - a.mtl_balance);
 
   const account = await server.loadAccount(mtl_foundation);

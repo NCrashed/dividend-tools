@@ -1,6 +1,6 @@
-function hasBalance(account, asset) {
+function hasTrustline(account, asset) {
   var desired_balance = account.balances.find(b => b.asset_code == asset.asset_code && b.asset_issuer == asset.asset_issuer);
-  return desired_balance !== null;
+  return desired_balance !== 'undefined' && desired_balance != null;
 }
 
 function getBalance(account, asset) {
@@ -68,7 +68,7 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
       mtl_city_indirect: 0.0,
       mtl_city_share: 0.0,
       mtl_city_vote: 0.0,
-      has_eurmtl: hasBalance(a, eurmtl),
+      has_eurmtl: hasTrustline(a, eurmtl),
     })).filter(a => a.account_id != mtl_foundation);
 
     let mtl_total = data.reduce((acc, a) => acc + a.mtl_balance, 0.0);
@@ -97,7 +97,7 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
     let mtl_city_votes_total = data.reduce((acc, a) => acc + a.mtl_city_vote, 0.0);
     let mtl_votes_threshold = Math.ceil(mtl_votes_total / 2);
     let mtl_city_votes_threshold = Math.ceil(mtl_city_votes_total / 2);
-    
+
     return { holders: data, 
       mtl_total, distributed_city, 
       mtl_city_foundation, 
