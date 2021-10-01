@@ -23,6 +23,7 @@ template = "page.html"
 <table id="votes-table" class="display">
   <thead>
     <tr>
+      <th>#</th>
       <th>Account</th>
       <th>MTL votes expected</th>
       <th>MTL votes blockchain</th>

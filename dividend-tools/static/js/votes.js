@@ -37,8 +37,10 @@ async function drawVotes() {
       $("#mtl_city_votes_threshold").text(data.mtl_city_votes_threshold);
 
       data = data.holders.filter(a => a.mtl_vote + a.mtl_city_vote + a.mtl_vote_blockchain + a.mtl_issuer_vote_blockchain + a.mtl_city_vote_blockchain  > 0);
-  
+      data = data.sort((a, b) => b.mtl_balance - a.mtl_balance);
+      var i = 1;
       var data = data.map(a => [
+        i++,
         makeAccountUrl(a.account_id),
         a.mtl_vote,
         a.mtl_vote_blockchain,
@@ -49,9 +51,9 @@ async function drawVotes() {
       var table = $('#votes-table').DataTable({
           data: data,
           pageLength: 100,
-          order: [[ 1, 'desc' ]],
+        //   order: [[ 1, 'desc' ]],
           createdRow: function(row, data, dataIndex) {
-                if (data[1] != data[2] || data[1] != data[3] || data[4] != data[5]){
+                if (data[2] != data[3] || data[2] != data[4] || data[5] != data[6]) {
                     $(row).addClass('red-row');
                 }
             },

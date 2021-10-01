@@ -129,7 +129,11 @@ async function drawShareholders() {
     $("#mtl_city_votes_total").text(data.mtl_city_votes_total);
     $("#mtl_city_votes_threshold").text(data.mtl_city_votes_threshold);
 
-    var data = data.holders.map(a => [
+    data = data.holders.sort((a, b) => b.mtl_balance - a.mtl_balance);
+    var i = 1;
+
+    data = data.map(a => [
+      i++,
       makeAccountUrl(a.account_id),
       a.mtl_balance,
       (a.mtl_share * 100).toFixed(3).toString() + "%",
@@ -143,7 +147,7 @@ async function drawShareholders() {
     var table = $('#shareholders-table').DataTable({
         data: data,
         pageLength: 100,
-        order: [[ 1, 'desc' ]],
+        // order: [[ 1, 'desc' ]],
     });
     
   } catch(err) {

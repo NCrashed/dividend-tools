@@ -21,6 +21,7 @@ template = "page.html"
 <table id="shareholders-table" class="display">
   <thead>
     <tr>
+      <th>#</th>
       <th>Account</th>
       <th>MTL</th>
       <th>MTL share</th>
