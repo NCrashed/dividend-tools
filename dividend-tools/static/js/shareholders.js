@@ -99,6 +99,11 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
   }
 }
 
+function makeAccountUrl(id) {
+  return '<a href="https://stellar.expert/explorer/public/account/' +
+    id + '">' + id.substring(0,10) + '...' + id.substr(id.length - 10) + '</a>';
+}
+
 async function drawShareholders() {
   try {
     var data = await loadShareholders();
@@ -109,8 +114,7 @@ async function drawShareholders() {
     $("#mtl_city_total").text(data.mtl_city_total);
 
     var data = data.holders.map(a => [
-      '<a href="https://stellar.expert/explorer/public/account/' +
-        a.account_id + '">' + a.account_id.substring(0,10) + '...' + a.account_id.substr(a.account_id.length - 10) + '</a>',
+      makeAccountUrl(a.account_id),
       a.mtl_balance,
       (a.mtl_share * 100).toFixed(3).toString() + "%",
       a.mtl_vote,
@@ -131,9 +135,40 @@ async function drawShareholders() {
   }
 }
 
+async function drawBlacklist() {
+  try {
+    var map = getBlacklist();
+    var data = [];
+
+    for (item of map.entries()) {
+      console.log(item);
+      data.push([
+        makeAccountUrl(item[0]),
+        item[1], 
+      ]);
+    }
+
+    var table = $('#blacklist-table').DataTable({
+        data: data,
+        pageLength: 100,
+        order: [[ 1, 'desc' ]],
+    });
+    
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+function getBlacklist() {
+  var m = new Map();
+
+  m.set("GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A", "Delegated");
+  m.set("GD7JLAZLZJ55W4WSU7SFUPR6XK2PX3BQB7ZG5XYHKYJ2LU6Z5ISPSI3I", "No contact");
+  m.set("GD22O6JVAFG2VENMNW5L7DKLOQCTPHFEWJTKHGPTMUIEL5G2TLF5YITW", "No contact");
+
+  return m;
+}
+
 // Public list of accounts that delegates vote or doesn't go in contact with foundation
-var vote_blacklist = [
-  "GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A",
-  "GD7JLAZLZJ55W4WSU7SFUPR6XK2PX3BQB7ZG5XYHKYJ2LU6Z5ISPSI3I",
-  "GD22O6JVAFG2VENMNW5L7DKLOQCTPHFEWJTKHGPTMUIEL5G2TLF5YITW"
-];
+var vote_blacklist = Array.from(getBlacklist().keys());
+
