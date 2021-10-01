@@ -3,9 +3,9 @@ async function makeDividendsTx(amount, memo, mtl, mtl_city, eurmtl) {
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
 
-  let shares = (await loadShareholders(mtl, mtl_city, eurmtl)).holders;
-  shares.filter(a => a.mtl_share > 0);
-  shares.sort((a, b) => a.mtl_share < b.mtl_share);
+  var shares = (await loadShareholders(mtl, mtl_city, eurmtl)).holders;
+  shares = shares.filter(a => a.mtl_balance > 0);
+  shares = shares.sort((a, b) => b.mtl_balance - a.mtl_balance);
 
   const account = await server.loadAccount(mtl_foundation);
   const fee = await server.fetchBaseFee();
@@ -15,22 +15,27 @@ async function makeDividendsTx(amount, memo, mtl, mtl_city, eurmtl) {
       options.memo = StellarSdk.Memo.text(memo);
   }
   var builder = new StellarSdk.TransactionBuilder(account, options);
-
+  var i = 0;
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
       // console.log("Funding", a.account_id, "with", dividendAmount);
       if (dividendAmount > 0 && a.has_eurmtl) {
-        builder.addOperation(
-          StellarSdk.Operation.payment({
-              destination: a.account_id,
-              asset: new StellarSdk.Asset(
-                  eurmtl.asset_code,
-                  eurmtl.asset_issuer
-                ),
-              amount: dividendAmount.toString(),
-          })
-        );
-      }
+        if (i < 100) {
+          builder.addOperation(
+            StellarSdk.Operation.payment({
+                destination: a.account_id,
+                asset: new StellarSdk.Asset(
+                    eurmtl.asset_code,
+                    eurmtl.asset_issuer
+                  ),
+                amount: dividendAmount.toString(),
+            })
+          );
+          i += 1;
+        } else {
+          console.log("WARNING! There are limit of 100 operations. Distirbution of", dividendAmount, "EURMTL skipped!");
+        }
+      } 
     }
   );
 
