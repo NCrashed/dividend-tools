@@ -3,6 +3,7 @@ title = "Votes"
 path = "votes"
 template = "page.html"
 +++
+<script src="../js/global.js" defer></script>
 <script src="../js/shareholders.js" defer></script>
 <script src="../js/votes.js" defer></script>
 
@@ -25,6 +26,7 @@ template = "page.html"
       <th>Account</th>
       <th>MTL votes expected</th>
       <th>MTL votes blockchain</th>
+      <th>MTL issuer votes blockchain</th>
       <th>MTLCITY votes expected</th>
       <th>MTLCITY votes blockchain</th>
     </tr>

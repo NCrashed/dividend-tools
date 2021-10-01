@@ -3,6 +3,7 @@ title = "Shareholders"
 path = "shareholders"
 template = "page.html"
 +++
+<script src="../js/global.js" defer></script>
 <script src="../js/shareholders.js" defer></script>
 
 <h4>Total MTL: <span id="mtl_total"></span></h4>
