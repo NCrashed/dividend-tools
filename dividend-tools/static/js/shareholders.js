@@ -88,8 +88,8 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
       a.mtl_share = a.mtl_balance / mtl_total; 
       a.mtl_city_indirect = a.mtl_share * mtl_city_foundation;
       a.mtl_city_share = (a.mtl_city_balance + a.mtl_city_indirect) / mtl_city_total;
-      a.mtl_vote = calcLogVote(a.mtl_balance); 
-      a.mtl_city_vote = calcLogVote(a.mtl_city_balance + a.mtl_city_indirect);
+      a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_balance); 
+      a.mtl_city_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_city_balance + a.mtl_city_indirect);
       return a;
     });
 
