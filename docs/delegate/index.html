@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
 
-    <title>Dividends</title>
+    <title>Delegation</title>
     <meta name="description" content="Provides online tooling for Stellar transactions">
 
     <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;main.css">
@@ -32,7 +32,7 @@
                 <a  href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;shareholders&#x2F;">Shareholders</a>
                 
                 
-                <a class="active" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;dividends&#x2F;">Dividends</a>
+                <a  href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;dividends&#x2F;">Dividends</a>
                 
                 
                 <a  href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;blacklist&#x2F;">Blacklist</a>
@@ -41,7 +41,7 @@
                 <a  href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;votes&#x2F;">Votes</a>
                 
                 
-                <a  href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;delegate&#x2F;">Delegation</a>
+                <a class="active" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;delegate&#x2F;">Delegation</a>
                 
                 
             </nav>
@@ -51,24 +51,29 @@
 
 <article class="post">
     <header>
-        <h1>Dividends</h1>
+        <h1>Delegation</h1>
     </header>
     <div class="content">
-        <script src="../js/global.js" defer></script>
+        <script src="../js/cytoscape.min.js" defer></script>
+<script src="../js/global.js" defer></script>
 <script src="../js/shareholders.js" defer></script>
-<script src="../js/dividends.js" defer></script>
-<p><label for="dividends-amount">EURMTL to spread: </label>
-<input type="text" id="dividends-amount" name="dividends-amount" value="10"/>
-<label for="dividends-memo">Memo: </label>
-<input type="text" id="dividends-memo" name="dividends-memo"/>
-<label for="dividends-offset">Offset: </label>
-<input type="text" id="dividends-offset" name="dividends-offset" value="0"/>
-<button id="dividend-gen" class="btn success">Generate transaction</button>
-<button id="view-laboratory" class="btn success">View in laboratory</button></p>
-<div id="tx-error"></div>
-<div id="dividend-tx"></div>
+<script src="../js/delegate.js" defer></script>
+<div id="deletate"></div>
+<table id="delegate-table" class="display">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Tx</th>
+      <th>From</th>
+      <th>To</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody
+</tbody>
+</table>
 <script>
-  window.onload = function(){ drawDividends(); };
+  window.onload = function(){ drawDelegation(); };
 </script>
 
     </div>

@@ -93,8 +93,14 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
       return a;
     });
 
-    let mtl_votes_total = data.reduce((acc, a) => acc + a.mtl_vote, 0.0);
-    let mtl_city_votes_total = data.reduce((acc, a) => acc + a.mtl_city_vote, 0.0);
+    let maximum_signers = 20;
+
+    let mtl_votes_data = data.sort((a, b) => b.mtl_balance - a.mtl_balance).slice(0, maximum_signers);
+    let mtl_votes_total = mtl_votes_data.reduce((acc, a) => acc + a.mtl_vote, 0.0);
+
+    let city_votes_data = data.sort((a, b) => b.mtl_city_share - a.mtl_city_share).slice(0, maximum_signers);
+    let mtl_city_votes_total = city_votes_data.reduce((acc, a) => acc + a.mtl_city_vote, 0.0);
+
     let mtl_votes_threshold = Math.ceil(mtl_votes_total / 2);
     let mtl_city_votes_threshold = Math.ceil(mtl_city_votes_total / 2);
 

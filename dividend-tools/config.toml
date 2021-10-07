@@ -1,5 +1,5 @@
 # The URL the site will be built for
-base_url = "https://ncrashed.github.io/dividend-tools/"
+base_url = "https://ncrashed.github.io/dividend-tools"
 
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
@@ -28,4 +28,5 @@ anpu_menu_links = [
     { url = "$BASE_URL/dividends/", name = "Dividends" },
     { url = "$BASE_URL/blacklist/", name = "Blacklist" },
     { url = "$BASE_URL/votes/", name = "Votes" },
+    { url = "$BASE_URL/delegate/", name = "Delegation" },
 ]
