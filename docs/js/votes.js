@@ -50,10 +50,10 @@ async function drawVotes() {
       data: mtl_data,
       pageLength: 100,
       createdRow: function(row, data, dataIndex) {
-        if (data[0] > 20) {
-          $(row).addClass('grey-row');
-        } else if (data[2] != data[3] || data[2] != data[4]) {
+        if (data[2] != data[3] || data[2] != data[4]) {
           $(row).addClass('red-row');
+        } else if (data[0] > 20)  {
+          $(row).addClass('grey-row');
         }
       },
     });
@@ -70,10 +70,10 @@ async function drawVotes() {
       data: city_data,
       pageLength: 100,
       createdRow: function(row, data, dataIndex) {
-        if (data[0] > 20) {
-          $(row).addClass('grey-row');
-        } else if (data[2] != data[3]) {
+        if (data[2] != data[3]) {
           $(row).addClass('red-row');
+        } else if (data[0] > 20) {
+          $(row).addClass('grey-row');
         }
       },
     });
