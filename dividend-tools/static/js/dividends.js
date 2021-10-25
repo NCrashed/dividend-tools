@@ -16,6 +16,9 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
   }
   var builder = new StellarSdk.TransactionBuilder(account, options);
   var i = 0;
+  if (offset > 0) {
+    builder.sequence  = builder.sequence + 1;
+  }
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
       // console.log("Funding", a.account_id, "with", dividendAmount);
