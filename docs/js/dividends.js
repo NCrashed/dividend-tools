@@ -1,4 +1,4 @@
-async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
+async function makeDividendsTx(amount, memo, offset, sequence, mtl, mtl_city, eurmtl) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
@@ -7,7 +7,7 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
   shares = shares.filter(a => a.mtl_balance > 0 && a.has_eurmtl);
   shares = shares.sort((a, b) => b.mtl_balance - a.mtl_balance);
 
-  const account = await server.loadAccount(mtl_foundation);
+  const account = await server.loadAccount(mtl_foundation, sequence);
   const fee = await server.fetchBaseFee();
 
   var options = { fee, networkPassphrase: StellarSdk.Networks.PUBLIC };
@@ -16,9 +16,12 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
   }
   var builder = new StellarSdk.TransactionBuilder(account, options);
   var i = 0;
-  if (offset > 0) {
+
+  while (account.sequence < sequence - 1) {
     account.incrementSequenceNumber();
+	console.log(account.sequence); 	
   }
+  
   shares.forEach(function (a) {
       const dividendAmount = (a.mtl_share * amount).toFixed(7);
       // console.log("Funding", a.account_id, "with", dividendAmount);
@@ -54,6 +57,16 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
         .toString("base64");
 }
 
+
+async function setSequenceNumber() {
+  const account = await server.loadAccount(mtl_foundation);
+//	console.log(account.sequence); 
+//	console.log(account.sequenceNumber());
+//  console.log(account.incrementSequenceNumber());
+  account.incrementSequenceNumber();
+  $( "input[name='dividends-sequence']").val(account.sequence);
+}
+
 async function drawDividends() {
   $( "#view-laboratory" ).hide();
   $( "#dividend-gen" ).click(async function() {
@@ -63,8 +76,9 @@ async function drawDividends() {
       var amount = parseFloat($( "input[name='dividends-amount']").val());
       var memo = $( "input[name='dividends-memo']").val();
       var offset = parseInt($( "input[name='dividends-offset']").val());
-      console.log("Generating tx for", amount, "EURMTL and memo: ", memo, " offset:", offset);
-      var tx = await makeDividendsTx(amount, memo, offset);
+      var sequence = $( "input[name='dividends-sequence']").val();
+      console.log("Generating tx for", amount, "EURMTL and memo: ", memo, " offset:", offset, "sequence:", sequence);
+      var tx = await makeDividendsTx(amount, memo, offset, sequence);
 
       $('#dividend-tx').html(tx);
       $('#view-laboratory').show();
@@ -75,6 +89,7 @@ async function drawDividends() {
       $('#tx-error').html(err);
     }
   });
+  setSequenceNumber()  
 
 
 }
