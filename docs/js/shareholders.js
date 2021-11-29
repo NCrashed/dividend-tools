@@ -188,10 +188,20 @@ async function drawBlacklist() {
 function getBlacklist() {
   var m = new Map();
 
-  m.set("GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A", "Delegated");
-  m.set("GDU3D6FAJF2IEAYB73POO7TWSYXY2VRCF66S3QGO72DBLNVG4C7PMQP2", "Self-recusation");
-  m.set("GD22O6JVAFG2VENMNW5L7DKLOQCTPHFEWJTKHGPTMUIEL5G2TLF5YITW", "No contact");
-
+  $.ajaxSetup({
+      async: false
+  });
+  $.getJSON('https://raw.githubusercontent.com/montelibero-org/mtl/main/json/blacklist.json' ) 
+    .done(function( data ) {//
+	  //console.log(data);
+      for (key in data) {
+        if (data.hasOwnProperty(key)) {
+          //console.log("key = " + key);
+          //console.log("value = " + data[key]);
+          m.set(key, data[key]);
+        } 
+      }
+    }) 
   return m;
 }
 
