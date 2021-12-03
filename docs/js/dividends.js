@@ -38,10 +38,11 @@ async function makeDividendsTx(amount, memo, offset, sequence, mtl, mtl_city, eu
   var builder = new StellarSdk.TransactionBuilder(account, options);
   var i = 0;
 
-  while (account.sequence < sequence - 1) {
+  //console.log('sequence',BigInt(sequence),'account.sequence',BigInt(account.sequence));
+  while ((BigInt(sequence) - BigInt(1)) > BigInt(account.sequence)) {
     account.incrementSequenceNumber();
-	console.log(account.sequence); 	
-  }
+	console.log(BigInt(account.sequence)); 	
+  }	
   
   shares.forEach(function (a) {
 	  var dividendAmount = 0.00000;
