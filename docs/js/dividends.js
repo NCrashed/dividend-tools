@@ -23,8 +23,8 @@ async function makeDividendsTx(amount, memo, offset, sequence, mtl, mtl_city, eu
 	  //console.log(data);
       for (key in data) {
         if (data.hasOwnProperty(key)) {
-          console.log("key = " + key);
-          console.log("value = " + data[key]);
+          //console.log("key = " + key);
+          //console.log("value = " + data[key]);
           replenishList.set(key, data[key]);
         } 
       }
@@ -39,10 +39,11 @@ async function makeDividendsTx(amount, memo, offset, sequence, mtl, mtl_city, eu
   var i = 0;
 
   //console.log('sequence',BigInt(sequence),'account.sequence',BigInt(account.sequence));
-  while ((BigInt(sequence) - BigInt(1)) > BigInt(account.sequence)) {
+  while ((BigInt(sequence) - 1n) > BigInt(account.sequence)) {
     account.incrementSequenceNumber();
-	console.log(BigInt(account.sequence)); 	
-  }	
+    console.log(BigInt(account.sequence)); 	
+  }
+  //console.log('2sequence',BigInt(sequence),'account.sequence',BigInt(account.sequence),BigInt(account.sequence)+1n);
   
   shares.forEach(function (a) {
 	  var dividendAmount = 0.00000;
@@ -52,13 +53,13 @@ async function makeDividendsTx(amount, memo, offset, sequence, mtl, mtl_city, eu
 	    var calc = parseFloat(dividendAmount * persent / 100).toFixed(7);
 		dividendAmount = parseFloat(dividendAmount - calc).toFixed(7);
 		replenishAmount = parseFloat(replenishAmount + calc).toFixed(7);
-        console.log(replenishAmount);
-        console.log("Founding", a.account_id, "with", dividendAmount,'persent ',persent);
+        //console.log(replenishAmount);
+        //console.log("Founding", a.account_id, "with", dividendAmount,'persent ',persent);
 	  }
 	  else{
 		dividendAmount = (a.mtl_share * amount).toFixed(7);
 	  }
-      console.log("Funding", a.account_id, "with", dividendAmount);
+      //console.log("Funding", a.account_id, "with", dividendAmount);
       if (offset > 0) {
         offset = offset - 1;
       } else if (dividendAmount > 0 && a.has_eurmtl) {
