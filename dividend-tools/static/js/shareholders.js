@@ -28,7 +28,7 @@ async function loadAssetAccounts(asset, accumulated_accounts) {
         .limit(page)
         .call();
   var accounts = [];
-  do { 
+  do {
     accounts = await request;
     for (const item of accounts.records) {
       if (!accumulated_accounts.has(item.account_id)) {
@@ -41,27 +41,30 @@ async function loadAssetAccounts(asset, accumulated_accounts) {
   return accumulated_accounts;
 }
 
-async function loadAccounts(mtl, mtl_city) {
+async function loadAccounts(mtl, mtl_city, mtl_rect) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
+  mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
 
   var accumulated_accounts = await loadAssetAccounts(mtl, new Map());
   accumulated_accounts = await loadAssetAccounts(mtl_city, accumulated_accounts);
+  accumulated_accounts = await loadAssetAccounts(mtl_rect, accumulated_accounts);
 
   return accumulated_accounts;
 }
 
-async function loadShareholders(mtl, mtl_city, eurmtl) {
+async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
+  mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
 
   try {
-    var accumulated_accounts = await loadAccounts(mtl, mtl_city);
+    var accumulated_accounts = await loadAccounts(mtl, mtl_city, mtl_rect);
 
     let data = Array.from(accumulated_accounts.values()).map(a => ({
       account_id: a.account_id,
-      mtl_balance: getBalance(a, mtl),
+      mtl_balance: getBalance(a, mtl) + getBalance(a, mtl_rect),
       mtl_share: 0.0,
       mtl_vote: 0.0,
       mtl_city_balance: getBalance(a, mtl_city),
@@ -84,11 +87,11 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
     let mtl_city_total = distributed_city + mtl_city_foundation;
     console.log("Total MTLCITY: ", mtl_city_total);
 
-    data = data.map( a => { 
-      a.mtl_share = a.mtl_balance / mtl_total; 
+    data = data.map( a => {
+      a.mtl_share = a.mtl_balance / mtl_total;
       a.mtl_city_indirect = a.mtl_share * mtl_city_foundation;
       a.mtl_city_share = (a.mtl_city_balance + a.mtl_city_indirect) / mtl_city_total;
-      a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_balance); 
+      a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_balance);
       a.mtl_city_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_city_balance + a.mtl_city_indirect);
       return a;
     });
@@ -104,13 +107,13 @@ async function loadShareholders(mtl, mtl_city, eurmtl) {
     let mtl_votes_threshold = Math.ceil(mtl_votes_total / 2);
     let mtl_city_votes_threshold = Math.ceil(mtl_city_votes_total / 2);
 
-    return { holders: data, 
-      mtl_total, distributed_city, 
-      mtl_city_foundation, 
-      mtl_city_total, 
-      mtl_votes_total, 
-      mtl_city_votes_total, 
-      mtl_votes_threshold, 
+    return { holders: data,
+      mtl_total, distributed_city,
+      mtl_city_foundation,
+      mtl_city_total,
+      mtl_votes_total,
+      mtl_city_votes_total,
+      mtl_votes_threshold,
       mtl_city_votes_threshold };
   } catch(err) {
     console.error(err);
@@ -155,7 +158,7 @@ async function drawShareholders() {
         pageLength: 100,
         // order: [[ 1, 'desc' ]],
     });
-    
+
   } catch(err) {
     console.error(err);
   }
@@ -170,7 +173,7 @@ async function drawBlacklist() {
       console.log(item);
       data.push([
         makeAccountUrl(item[0]),
-        item[1], 
+        item[1],
       ]);
     }
 
@@ -179,7 +182,7 @@ async function drawBlacklist() {
         pageLength: 100,
         order: [[ 1, 'desc' ]],
     });
-    
+
   } catch(err) {
     console.error(err);
   }

@@ -1,9 +1,10 @@
-async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
+async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl, mtl_rect) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
   eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
+  mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
 
-  var shares = (await loadShareholders(mtl, mtl_city, eurmtl)).holders;
+  var shares = (await loadShareholders(mtl, mtl_city, eurmtl, mtl_rect, mtl_rect)).holders;
   shares = shares.filter(a => a.mtl_balance > 0 && a.has_eurmtl);
   shares = shares.sort((a, b) => b.mtl_balance - a.mtl_balance);
 
@@ -40,7 +41,7 @@ async function makeDividendsTx(amount, memo, offset, mtl, mtl_city, eurmtl) {
         } else {
           console.log("WARNING! There is limit of 100 operations. Distirbution to", a.account_id, "of", dividendAmount, "EURMTL skipped!");
         }
-      } 
+      }
     }
   );
 
