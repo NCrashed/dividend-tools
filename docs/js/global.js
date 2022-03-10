@@ -36,6 +36,10 @@ async function getEurMtlAsset() {
   return getAsset("EURMTL", mtl_issuer);
 }
 
+async function getMtlRectAsset() {
+  return getAsset("MTLRECT", mtl_issuer);
+}
+
 async function getMtlFoundation() {
   try {
     let resp = await server

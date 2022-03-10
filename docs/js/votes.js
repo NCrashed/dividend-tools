@@ -57,7 +57,7 @@ async function drawVotes() {
         }
       },
     });
-    
+
     data = data.sort((a, b) => b.mtl_city_share - a.mtl_city_share);
     i = 1;
     var city_data = data.map(a => [
