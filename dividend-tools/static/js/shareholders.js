@@ -72,7 +72,7 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
       mtl_city_share: 0.0,
       mtl_city_vote: 0.0,
       has_eurmtl: hasTrustline(a, eurmtl),
-    })).filter(a => a.account_id != mtl_foundation);
+    })).filter(a => a.account_id != mtl_foundation && a.account_id != mtl_rect_custody);
 
     let mtl_total = data.reduce((acc, a) => acc + a.mtl_balance, 0.0);
     console.log("Total MTL hodl: ", mtl_total);
