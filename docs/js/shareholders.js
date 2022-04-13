@@ -17,7 +17,7 @@ function log2(x) {
 }
 
 function calcLogVote(x) {
-  return Math.round(Math.max(0, log2(x / 100)));
+  return Math.round(Math.max(0, log2(x / 600))); // changed from 100 to 600 in https://stellar.expert/explorer/public/tx/193024acd8069bb990273e96f59e1622b065ef39ed1df8963c43073a7d66d8cb
 }
 
 async function loadAssetAccounts(asset, accumulated_accounts) {
