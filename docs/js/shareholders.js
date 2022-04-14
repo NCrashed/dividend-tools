@@ -41,6 +41,54 @@ async function loadAssetAccounts(asset, accumulated_accounts) {
   return accumulated_accounts;
 }
 
+/// Fill mapping from account => how much voices delegated to him (positive) or how much voiced delegate from him (negative)
+function fillDelegations(accounts) {
+  var delegated = new Map();
+
+  for (const item of accounts) {
+    if ('delegate' in item.data_attr) {
+      let target = atob(item.data_attr.delegate);
+      addDelegation(delegated, target, item.mtl_balance, item.mtl_city_full);
+      addDelegation(delegated, item.account_id, -item.mtl_balance, -item.mtl_city_full);
+    }
+  }
+
+  return delegated;
+}
+
+/// Add delegation votes for given target account in map of delegated votes
+function addDelegation(delegated, target, mtl_vote, mtl_city_vote) {
+  if (delegated.has(target)) {
+    var prev = delegated.get(target);
+    prev.mtl += mtl_vote;
+    prev.mtl_city += mtl_city_vote;
+    delegated.set(target, prev);
+  } else {
+    delegated.set(target, {
+      mtl: mtl_vote,
+      mtl_city: mtl_city_vote
+    })
+  }
+}
+
+/// Extract delegated amount of votes for MTL for given account id
+function getDelegatedMtl(delegated, account_id) {
+  if (delegated.has(account_id)) {
+    return delegated.get(account_id).mtl;
+  } else {
+    return 0;
+  }
+}
+
+/// Extract delegated amount of votes for MTL_CITY for given account id
+function getDelegatedCity(delegated, account_id) {
+  if (delegated.has(account_id)) {
+    return delegated.get(account_id).mtl_city;
+  } else {
+    return 0;
+  }
+}
+
 async function loadAccounts(mtl, mtl_city, mtl_rect) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
@@ -64,6 +112,7 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
 
     let data = Array.from(accumulated_accounts.values()).map(a => ({
       account_id: a.account_id,
+      data_attr: a.data_attr,
       mtl_balance: getBalance(a, mtl) + getBalance(a, mtl_rect),
       mtl_share: 0.0,
       mtl_vote: 0.0,
@@ -90,9 +139,22 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
     data = data.map( a => {
       a.mtl_share = a.mtl_balance / mtl_total;
       a.mtl_city_indirect = a.mtl_share * mtl_city_foundation;
-      a.mtl_city_share = (a.mtl_city_balance + a.mtl_city_indirect) / mtl_city_total;
-      a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_balance);
-      a.mtl_city_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_city_balance + a.mtl_city_indirect);
+      a.mtl_city_full = a.mtl_city_balance + a.mtl_city_indirect;
+      a.mtl_city_share = a.mtl_city_full / mtl_city_total;
+      return a;
+    });
+
+    var delegated = fillDelegations(data);
+    console.log(delegated);
+    data = data.map( a => {
+      a.mtl_with_delegation = a.mtl_balance + getDelegatedMtl(delegated, a.account_id);
+      a.mtl_city_with_delegation = a.mtl_city_full + getDelegatedCity(delegated, a.account_id);
+      return a;
+    });
+
+    data = data.map( a => {
+      a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_with_delegation);
+      a.mtl_city_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_city_with_delegation);
       return a;
     });
 
