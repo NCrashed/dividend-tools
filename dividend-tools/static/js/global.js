@@ -89,3 +89,63 @@ function getSigners(account) {
 
   return map;
 }
+
+function hasTrustline(account, asset) {
+  var desired_balance = account.balances.find(b => b.asset_code == asset.asset_code && b.asset_issuer == asset.asset_issuer);
+  return desired_balance !== 'undefined' && desired_balance != null;
+}
+
+function getBalance(account, asset) {
+  var desired_balance = account.balances.find(b => b.asset_code == asset.asset_code && b.asset_issuer == asset.asset_issuer);
+  if (desired_balance == null) {
+    return 0.0;
+  } else {
+    return parseFloat(desired_balance.balance);
+  }
+}
+
+function log2(x) {
+  return Math.log(x) / Math.log(2);
+}
+
+function calcLogVote(x) {
+  return Math.round(Math.max(0, log2(x / 600))); // changed from 100 to 600 in https://stellar.expert/explorer/public/tx/193024acd8069bb990273e96f59e1622b065ef39ed1df8963c43073a7d66d8cb
+}
+
+async function loadAssetAccounts(asset, accumulated_accounts) {
+  let page = 100;
+  var request = server
+        .accounts()
+        .forAsset(asset.asset_code + ":" + asset.asset_issuer)
+        .limit(page)
+        .call();
+  var accounts = [];
+  do {
+    accounts = await request;
+    for (const item of accounts.records) {
+      if (!accumulated_accounts.has(item.account_id)) {
+        accumulated_accounts.set(item.account_id, item);
+      }
+    }
+    request = accounts.next();
+  } while(accounts.records.length > 0)
+
+  return accumulated_accounts;
+}
+
+async function loadAccounts(mtl, mtl_city, mtl_rect) {
+  mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
+  mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
+  mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
+
+  var accumulated_accounts = await loadAssetAccounts(mtl, new Map());
+  accumulated_accounts = await loadAssetAccounts(mtl_city, accumulated_accounts);
+  accumulated_accounts = await loadAssetAccounts(mtl_rect, accumulated_accounts);
+
+  return accumulated_accounts;
+}
+
+function makeAccountUrl(id) {
+  return '<a href="https://stellar.expert/explorer/public/account/' +
+    id + '">' + id.substring(0,10) + '...' + id.substr(id.length - 10) + '</a>';
+}

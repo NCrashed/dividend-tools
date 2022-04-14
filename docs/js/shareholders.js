@@ -1,106 +1,3 @@
-function hasTrustline(account, asset) {
-  var desired_balance = account.balances.find(b => b.asset_code == asset.asset_code && b.asset_issuer == asset.asset_issuer);
-  return desired_balance !== 'undefined' && desired_balance != null;
-}
-
-function getBalance(account, asset) {
-  var desired_balance = account.balances.find(b => b.asset_code == asset.asset_code && b.asset_issuer == asset.asset_issuer);
-  if (desired_balance == null) {
-    return 0.0;
-  } else {
-    return parseFloat(desired_balance.balance);
-  }
-}
-
-function log2(x) {
-  return Math.log(x) / Math.log(2);
-}
-
-function calcLogVote(x) {
-  return Math.round(Math.max(0, log2(x / 600))); // changed from 100 to 600 in https://stellar.expert/explorer/public/tx/193024acd8069bb990273e96f59e1622b065ef39ed1df8963c43073a7d66d8cb
-}
-
-async function loadAssetAccounts(asset, accumulated_accounts) {
-  let page = 100;
-  var request = server
-        .accounts()
-        .forAsset(asset.asset_code + ":" + asset.asset_issuer)
-        .limit(page)
-        .call();
-  var accounts = [];
-  do {
-    accounts = await request;
-    for (const item of accounts.records) {
-      if (!accumulated_accounts.has(item.account_id)) {
-        accumulated_accounts.set(item.account_id, item);
-      }
-    }
-    request = accounts.next();
-  } while(accounts.records.length > 0)
-
-  return accumulated_accounts;
-}
-
-/// Fill mapping from account => how much voices delegated to him (positive) or how much voiced delegate from him (negative)
-function fillDelegations(accounts) {
-  var delegated = new Map();
-
-  for (const item of accounts) {
-    if ('delegate' in item.data_attr) {
-      let target = atob(item.data_attr.delegate);
-      addDelegation(delegated, target, item.mtl_balance, item.mtl_city_full);
-      addDelegation(delegated, item.account_id, -item.mtl_balance, -item.mtl_city_full);
-    }
-  }
-
-  return delegated;
-}
-
-/// Add delegation votes for given target account in map of delegated votes
-function addDelegation(delegated, target, mtl_vote, mtl_city_vote) {
-  if (delegated.has(target)) {
-    var prev = delegated.get(target);
-    prev.mtl += mtl_vote;
-    prev.mtl_city += mtl_city_vote;
-    delegated.set(target, prev);
-  } else {
-    delegated.set(target, {
-      mtl: mtl_vote,
-      mtl_city: mtl_city_vote
-    })
-  }
-}
-
-/// Extract delegated amount of votes for MTL for given account id
-function getDelegatedMtl(delegated, account_id) {
-  if (delegated.has(account_id)) {
-    return delegated.get(account_id).mtl;
-  } else {
-    return 0;
-  }
-}
-
-/// Extract delegated amount of votes for MTL_CITY for given account id
-function getDelegatedCity(delegated, account_id) {
-  if (delegated.has(account_id)) {
-    return delegated.get(account_id).mtl_city;
-  } else {
-    return 0;
-  }
-}
-
-async function loadAccounts(mtl, mtl_city, mtl_rect) {
-  mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
-  mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
-  mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
-
-  var accumulated_accounts = await loadAssetAccounts(mtl, new Map());
-  accumulated_accounts = await loadAssetAccounts(mtl_city, accumulated_accounts);
-  accumulated_accounts = await loadAssetAccounts(mtl_rect, accumulated_accounts);
-
-  return accumulated_accounts;
-}
-
 async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
   mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
   mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
@@ -152,6 +49,8 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
       return a;
     });
 
+    var vote_blacklist = Object.keys(await getBlacklist());
+    console.log("Blacklist ", vote_blacklist);
     data = data.map( a => {
       a.mtl_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_with_delegation);
       a.mtl_city_vote = vote_blacklist.includes(a.account_id) ? 0 : calcLogVote(a.mtl_city_with_delegation);
@@ -176,15 +75,11 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
       mtl_votes_total,
       mtl_city_votes_total,
       mtl_votes_threshold,
-      mtl_city_votes_threshold };
+      mtl_city_votes_threshold,
+      delegated };
   } catch(err) {
     console.error(err);
   }
-}
-
-function makeAccountUrl(id) {
-  return '<a href="https://stellar.expert/explorer/public/account/' +
-    id + '">' + id.substring(0,10) + '...' + id.substr(id.length - 10) + '</a>';
 }
 
 async function drawShareholders() {
@@ -228,11 +123,10 @@ async function drawShareholders() {
 
 async function drawBlacklist() {
   try {
-    var map = getBlacklist();
+    var map = new Map(Object.entries(await getBlacklist()));
     var data = [];
 
     for (item of map.entries()) {
-      console.log(item);
       data.push([
         makeAccountUrl(item[0]),
         item[1],
@@ -250,16 +144,9 @@ async function drawBlacklist() {
   }
 }
 
-function getBlacklist() {
-  var m = new Map();
-
-  m.set("GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A", "Delegated");
-  m.set("GDU3D6FAJF2IEAYB73POO7TWSYXY2VRCF66S3QGO72DBLNVG4C7PMQP2", "Self-recusation");
-  m.set("GD22O6JVAFG2VENMNW5L7DKLOQCTPHFEWJTKHGPTMUIEL5G2TLF5YITW", "No contact");
-
-  return m;
-}
-
 // Public list of accounts that delegates vote or doesn't go in contact with foundation
-var vote_blacklist = Array.from(getBlacklist().keys());
-
+async function getBlacklist() {
+  const response = await fetch('https://raw.githubusercontent.com/montelibero-org/mtl/main/json/blacklist.json');
+  const data = await response.json();
+  return data;
+}

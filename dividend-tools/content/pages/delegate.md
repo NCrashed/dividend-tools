@@ -1,23 +1,18 @@
 +++
-title = "Delegation"
+title = "Vote delegation"
 path = "delegate"
 template = "page.html"
 +++
-<script src="../js/cytoscape.min.js" defer></script>
 <script src="../js/global.js" defer></script>
-<script src="../js/shareholders.js" defer></script>
 <script src="../js/delegate.js" defer></script>
-
-<div id="deletate"></div>
 
 <table id="delegate-table" class="display">
   <thead>
     <tr>
-      <th>#</th>
-      <th>Tx</th>
-      <th>From</th>
-      <th>To</th>
-      <th>Time</th>
+      <th>Delegated To</th>
+      <th>Delegated From</th>
+      <th>MTL</th>
+      <th>MTLCity</th>
     </tr>
   </thead>
   <tbody
@@ -26,5 +21,5 @@ template = "page.html"
 </table>
 
 <script>
-  window.onload = function(){ drawDelegation(); };
+  window.onload = function(){ drawDelegated(); };
 </script>

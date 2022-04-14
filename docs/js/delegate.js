@@ -1,231 +1,126 @@
-async function loadDelegateTxs(account_id, accumulated_txs, mtl, mtl_city) {
-    let page = 100;
-    var request = server
-            .transactions()
-            .forAccount(account_id)
-            .limit(page)
-            .call();
-    var txs = [];
-    do { 
-        txs = await request;
-        // console.log(txs);
-        for (const tx of txs.records) {
-            if (!accumulated_txs.has(tx.id) && $.trim(tx.memo) == "delegate") {
-                console.log(tx);
-                accumulated_txs.set(tx.id, { 
-                    id: tx.id, 
-                    created_at: tx.created_at, 
-                    source_account: tx.source_account, 
-                });
-            }
-        }
-        request = txs.next();
-    } while(txs.records.length > 0)
+/// Fill mapping from account => how much voices delegated to him (positive) or how much voiced delegate from him (negative)
+function fillDelegations(accounts) {
+    var delegated = new Map();
 
-    return accumulated_txs;
+    for (const item of accounts) {
+        var target = getAccountDelegation(item);
+        if (target != null) {
+            addDelegation(delegated, target, item.mtl_balance, item.mtl_city_full);
+            addDelegation(delegated, item.account_id, -item.mtl_balance, -item.mtl_city_full);
+        }
+    }
+
+    return delegated;
 }
 
+/// Find delegation data entry in account and return it parsed or return null if there is no delegation
+function getAccountDelegation(account) {
+    if ('delegate' in account.data_attr) {
+        let target = atob(account.data_attr.delegate);
+        return target;
+    }
+    return null;
+}
 
-async function scanDelegations(mtl, mtl_city, eurmtl) {
+/// Add delegation votes for given target account in map of delegated votes
+function addDelegation(delegated, target, mtl_vote, mtl_city_vote) {
+    if (delegated.has(target)) {
+        var prev = delegated.get(target);
+        prev.mtl += mtl_vote;
+        prev.mtl_city += mtl_city_vote;
+        delegated.set(target, prev);
+    } else {
+        delegated.set(target, {
+        mtl: mtl_vote,
+        mtl_city: mtl_city_vote
+        })
+    }
+}
+
+/// Extract delegated amount of votes for MTL for given account id
+function getDelegatedMtl(delegated, account_id) {
+    if (delegated.has(account_id)) {
+        return delegated.get(account_id).mtl;
+    } else {
+        return 0;
+    }
+}
+
+/// Extract delegated amount of votes for MTL_CITY for given account id
+function getDelegatedCity(delegated, account_id) {
+    if (delegated.has(account_id)) {
+        return delegated.get(account_id).mtl_city;
+    } else {
+        return 0;
+    }
+}
+
+async function loadDelegations(mtl, mtl_city, eurmtl, mtl_rect) {
     mtl = (typeof mtl !== 'undefined') ? mtl : await getMtlAsset();
     mtl_city = (typeof mtl_city !== 'undefined') ? mtl_city : await getMtlCityAsset();
     eurmtl = (typeof eurmtl !== 'undefined') ? eurmtl : await getEurMtlAsset();
+    mtl_rect = (typeof mtl_rect !== 'undefined') ? mtl_rect : await getMtlRectAsset();
 
-    var data = await loadShareholders(mtl, mtl_city, eurmtl);
-    var txs = new Map();
+    try {
+        var accumulated_accounts = await loadAccounts(mtl, mtl_city, mtl_rect);
 
-    for (const a of data.holders) {
-        console.log("Loading txs for", a.account_id);
-        await loadDelegateTxs(a.account_id, txs, mtl, mtl_city);
+        let data = Array.from(accumulated_accounts.values()).map(a => (
+            {
+                account_id: a.account_id,
+                data_attr: a.data_attr,
+                mtl_balance: getBalance(a, mtl) + getBalance(a, mtl_rect),
+                mtl_share: 0.0,
+                mtl_city_balance: getBalance(a, mtl_city),
+                mtl_city_indirect: 0.0,
+            }
+           )).filter(a => a.account_id != mtl_foundation && a.account_id != mtl_rect_custody);
+
+        let mtl_total = data.reduce((acc, a) => acc + a.mtl_balance, 0.0);
+        let foundation_account = accumulated_accounts.get(mtl_foundation);
+        let mtl_city_foundation = 0;
+        if (foundation_account) {
+          mtl_city_foundation = getBalance(foundation_account, mtl_city);
+        }
+
+        data = data.map( a => {
+            let delegated = getAccountDelegation(a);
+            if (delegated == null) {
+                return null;
+            } else {
+                a.delegated_to = delegated;
+                a.mtl_share = a.mtl_balance / mtl_total;
+                a.mtl_city_indirect = a.mtl_share * mtl_city_foundation;
+                a.mtl_city_full = a.mtl_city_balance + a.mtl_city_indirect;
+                return a;
+            }
+        }).filter(a => a != null);
+
+        return data;
+    } catch(err) {
+        console.error(err);
     }
-
-    return txs;
 }
 
-async function drawDelegation() {
+async function drawDelegated() {
     try {
+      var holders = await loadDelegations();
+      var data = [];
 
-    // var data = await scanDelegations();
-    var data = memoDelegations();
-    console.log(data);
-
-    var cy = cytoscape({
-        container: $('#deletate'),
-        elements: [ // list of graph elements to start with
-            { // node a
-              data: { id: 'a' }
-            },
-            { // node b
-              data: { id: 'b' }
-            },
-            { // edge ab
-              data: { id: 'ab', source: 'a', target: 'b' }
-            }
-          ],
-        
-          style: [ // the stylesheet for the graph
-            {
-              selector: 'node',
-              style: {
-                'background-color': '#666',
-                'label': 'data(id)'
-              }
-            },
-        
-            {
-              selector: 'edge',
-              style: {
-                'width': 3,
-                'line-color': '#ccc',
-                'target-arrow-color': '#ccc',
-                'target-arrow-shape': 'triangle',
-                'curve-style': 'bezier'
-              }
-            }
-          ],
-        
-          layout: {
-            name: 'grid',
-            rows: 1
-          }
-    });
-
-    //   var data = await getVotes();
-
-      data = Array.from(data.values());
-
-      var i = 1;
-      var data = data.map(a => [
-        i++,
-        makeTxUrl(a.id),
-        makeAccountUrl(a.source_account),
-
-        a.mtl_vote_blockchain,
-        a.mtl_issuer_vote_blockchain,
-        a.mtl_city_vote,
-        a.mtl_city_vote_blockchain,
-        ]);
-      var table = $('#votes-table').DataTable({
+      for (let a of holders) {
+          data.push([
+            makeAccountUrl(a.delegated_to),
+            makeAccountUrl(a.account_id),
+            a.mtl_balance,
+            a.mtl_city_full,
+          ]);
+      }
+      var table = $('#delegate-table').DataTable({
           data: data,
           pageLength: 100,
           order: [[ 1, 'desc' ]],
-          createdRow: function(row, data, dataIndex) {
-                if (data[2] != data[3] || data[2] != data[4] || data[5] != data[6]) {
-                    $(row).addClass('red-row');
-                }
-            },
       });
-      
+
     } catch(err) {
       console.error(err);
     }
   }
-
-  function memoDelegations() {
-    return new Map(Object.entries({
-        "18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0": {
-            "memo": "delegate",
-            "memo_bytes": "ZGVsZWdhdGU=",
-            "_links": {
-                "self": {
-                    "href": "https://horizon.stellar.org/transactions/18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0"
-                },
-                "account": {
-                    "href": "https://horizon.stellar.org/accounts/GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A"
-                },
-                "ledger": {
-                    "href": "https://horizon.stellar.org/ledgers/35766642"
-                },
-                "operations": {
-                    "href": "https://horizon.stellar.org/transactions/18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0/operations{?cursor,limit,order}",
-                    "templated": true
-                },
-                "effects": {
-                    "href": "https://horizon.stellar.org/transactions/18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0/effects{?cursor,limit,order}",
-                    "templated": true
-                },
-                "precedes": {
-                    "href": "https://horizon.stellar.org/transactions?order=asc&cursor=153616557678100480"
-                },
-                "succeeds": {
-                    "href": "https://horizon.stellar.org/transactions?order=desc&cursor=153616557678100480"
-                },
-                "transaction": {
-                    "href": "https://horizon.stellar.org/transactions/18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0"
-                }
-            },
-            "id": "18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0",
-            "paging_token": "153616557678100480",
-            "successful": true,
-            "hash": "18e14f0876049ec09252daecfb35e0384a1fedce88bed207b08425c26f7cecb0",
-            "created_at": "2021-06-06T14:40:10Z",
-            "source_account": "GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A",
-            "source_account_sequence": "150596066092253216",
-            "fee_account": "GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A",
-            "fee_charged": "100",
-            "max_fee": "10000",
-            "operation_count": 1,
-            "envelope_xdr": "AAAAAgAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAJxACFwZTAAAAIAAAAAAAAAABAAAACGRlbGVnYXRlAAAAAQAAAAEAAAAAOw0/NkHkJx2oMlvA36/mg8Iw08Alu4mAOQ4ilUKEN5sAAAABAAAAAJ7rDhAdZAgZN822Sz3p6kReKnM4cNDyneAVCo15uteGAAAAAk1UTENJVFkAAAAAAAAAAADoj6aqtmvFJrjhE4Ddhri0neRe/nzuwK/mWVgzVOpurQAAAAAAAAAKAAAAAAAAAAFChDebAAAAQJfCMFDGhZKmuWKkS4K3DgA6SMbKV4GoW4qVz2fandErWdRn9jbKeeqCl0uibvlMXELRU5Nq9tXLZKy2JtLCcgs=",
-            "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
-            "result_meta_xdr": "AAAAAgAAAAIAAAADAiHBcgAAAAAAAAAAOw0/NkHkJx2oMlvA36/mg8Iw08Alu4mAOQ4ilUKEN5sAAAABe9R03AIXBlMAAAAfAAAADwAAAAEAAAAAxHHGQ3BiyVBqiTQuU4oa2kBNL0HPHTolX0Mh98bg4XUAAAAAAAAACWxvYnN0ci5jbwAAAAEAAAAAAAAAAAAAAQAAAAaiIuaAAAAAAAX14QAAAAAAAAAAAAAAAAECIcFyAAAAAAAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAAAF71HTcAhcGUwAAACAAAAAPAAAAAQAAAADEccZDcGLJUGqJNC5TihraQE0vQc8dOiVfQyH3xuDhdQAAAAAAAAAJbG9ic3RyLmNvAAAAAQAAAAAAAAAAAAABAAAABqIi5oAAAAAABfXhAAAAAAAAAAAAAAAAAQAAAAQAAAADAiA37gAAAAEAAAAAnusOEB1kCBk3zbZLPenqRF4qczhw0PKd4BUKjXm614YAAAACTVRMQ0lUWQAAAAAAAAAAAOiPpqq2a8UmuOETgN2GuLSd5F7+fO7Ar+ZZWDNU6m6tAAAABvwjrAB//////////wAAAAEAAAAAAAAAAAAAAAECIcFyAAAAAQAAAACe6w4QHWQIGTfNtks96epEXipzOHDQ8p3gFQqNebrXhgAAAAJNVExDSVRZAAAAAAAAAAAA6I+mqrZrxSa44ROA3Ya4tJ3kXv587sCv5llYM1Tqbq0AAAAG/COsCn//////////AAAAAQAAAAAAAAAAAAAAAwIhwVoAAAABAAAAADsNPzZB5CcdqDJbwN+v5oPCMNPAJbuJgDkOIpVChDebAAAAAk1UTENJVFkAAAAAAAAAAADoj6aqtmvFJrjhE4Ddhri0neRe/nzuwK/mWVgzVOpurQAAAAAAmJaAf/////////8AAAABAAAAAQAAAQKyuIcAAAAAAAAAAAAAAAAAAAAAAAAAAAECIcFyAAAAAQAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAAAJNVExDSVRZAAAAAAAAAAAA6I+mqrZrxSa44ROA3Ya4tJ3kXv587sCv5llYM1Tqbq0AAAAAAJiWdn//////////AAAAAQAAAAEAAAECsriHAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            "fee_meta_xdr": "AAAAAgAAAAMCIcFaAAAAAAAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAAAF71HVAAhcGUwAAAB8AAAAPAAAAAQAAAADEccZDcGLJUGqJNC5TihraQE0vQc8dOiVfQyH3xuDhdQAAAAAAAAAJbG9ic3RyLmNvAAAAAQAAAAAAAAAAAAABAAAABqIi5oAAAAAABfXhAAAAAAAAAAAAAAAAAQIhwXIAAAAAAAAAADsNPzZB5CcdqDJbwN+v5oPCMNPAJbuJgDkOIpVChDebAAAAAXvUdNwCFwZTAAAAHwAAAA8AAAABAAAAAMRxxkNwYslQaok0LlOKGtpATS9Bzx06JV9DIffG4OF1AAAAAAAAAAlsb2JzdHIuY28AAAABAAAAAAAAAAAAAAEAAAAGoiLmgAAAAAAF9eEAAAAAAAAAAAA=",
-            "memo_type": "text",
-            "signatures": [
-                "l8IwUMaFkqa5YqRLgrcOADpIxspXgahbipXPZ9qd0StZ1Gf2Nsp56oKXS6Ju+UxcQtFTk2r21ctkrLYm0sJyCw=="
-            ],
-            "ledger_attr": 35766642
-        },
-        "ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354": {
-            "memo": "delegate",
-            "memo_bytes": "ZGVsZWdhdGU=",
-            "_links": {
-                "self": {
-                    "href": "https://horizon.stellar.org/transactions/ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354"
-                },
-                "account": {
-                    "href": "https://horizon.stellar.org/accounts/GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A"
-                },
-                "ledger": {
-                    "href": "https://horizon.stellar.org/ledgers/36361527"
-                },
-                "operations": {
-                    "href": "https://horizon.stellar.org/transactions/ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354/operations{?cursor,limit,order}",
-                    "templated": true
-                },
-                "effects": {
-                    "href": "https://horizon.stellar.org/transactions/ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354/effects{?cursor,limit,order}",
-                    "templated": true
-                },
-                "precedes": {
-                    "href": "https://horizon.stellar.org/transactions?order=asc&cursor=156171569297784832"
-                },
-                "succeeds": {
-                    "href": "https://horizon.stellar.org/transactions?order=desc&cursor=156171569297784832"
-                },
-                "transaction": {
-                    "href": "https://horizon.stellar.org/transactions/ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354"
-                }
-            },
-            "id": "ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354",
-            "paging_token": "156171569297784832",
-            "successful": true,
-            "hash": "ed73f717467ff2bf91139240bb8e5d780e1078ef3ab549421ad97b4b05e21354",
-            "created_at": "2021-07-14T03:47:49Z",
-            "source_account": "GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A",
-            "source_account_sequence": "150596066092253234",
-            "fee_account": "GA5Q2PZWIHSCOHNIGJN4BX5P42B4EMGTYAS3XCMAHEHCFFKCQQ3ZX34A",
-            "fee_charged": "100",
-            "max_fee": "10000",
-            "operation_count": 1,
-            "envelope_xdr": "AAAAAgAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAJxACFwZTAAAAMgAAAAAAAAABAAAACGRlbGVnYXRlAAAAAQAAAAEAAAAAOw0/NkHkJx2oMlvA36/mg8Iw08Alu4mAOQ4ilUKEN5sAAAABAAAAAJ7rDhAdZAgZN822Sz3p6kReKnM4cNDyneAVCo15uteGAAAAAU1UTAAAAAAABKm3owZNa8bB1ZbPOeEZwMn6SWmWnL4MJkNI8TQwb6oAAAAAAAAACgAAAAAAAAABQoQ3mwAAAECUeQka5FxfpN9kiekZkzvMPHueMEUxNBx6bsDnmtdbrU6cmoXFmtKhgC7+bPV97JhgdHtI9Aj8Zcm/DbYYun0F",
-            "result_xdr": "AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAA=",
-            "result_meta_xdr": "AAAAAgAAAAIAAAADAirVNwAAAAAAAAAAOw0/NkHkJx2oMlvA36/mg8Iw08Alu4mAOQ4ilUKEN5sAAAABcvj5CgIXBlMAAAAxAAAAGAAAAAEAAAAAxHHGQ3BiyVBqiTQuU4oa2kBNL0HPHTolX0Mh98bg4XUAAAAAAAAACWxvYnN0ci5jbwAAAAEAAAAAAAAAAAAAAQAAAAsggYeAAAAAADWk6UYAAAAAAAAAAAAAAAECKtU3AAAAAAAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAAAFy+PkKAhcGUwAAADIAAAAYAAAAAQAAAADEccZDcGLJUGqJNC5TihraQE0vQc8dOiVfQyH3xuDhdQAAAAAAAAAJbG9ic3RyLmNvAAAAAQAAAAAAAAAAAAABAAAACyCBh4AAAAAANaTpRgAAAAAAAAAAAAAAAQAAAAQAAAADAiqvawAAAAEAAAAAnusOEB1kCBk3zbZLPenqRF4qczhw0PKd4BUKjXm614YAAAABTVRMAAAAAAAEqbejBk1rxsHVls854RnAyfpJaZacvgwmQ0jxNDBvqgAAAHZqGyoNf/////////8AAAABAAAAAQAAAAAAAAAAAAAAAlitk2UAAAAAAAAAAAAAAAECKtU3AAAAAQAAAACe6w4QHWQIGTfNtks96epEXipzOHDQ8p3gFQqNebrXhgAAAAFNVEwAAAAAAASpt6MGTWvGwdWWzznhGcDJ+klplpy+DCZDSPE0MG+qAAAAdmobKhd//////////wAAAAEAAAABAAAAAAAAAAAAAAACWK2TZQAAAAAAAAAAAAAAAwIqLSwAAAABAAAAADsNPzZB5CcdqDJbwN+v5oPCMNPAJbuJgDkOIpVChDebAAAAAU1UTAAAAAAABKm3owZNa8bB1ZbPOeEZwMn6SWmWnL4MJkNI8TQwb6oAAAAB9bIPBH//////////AAAAAQAAAAEAAAECuK5oAAAAAAHawEFAAAAAAAAAAAAAAAABAirVNwAAAAEAAAAAOw0/NkHkJx2oMlvA36/mg8Iw08Alu4mAOQ4ilUKEN5sAAAABTVRMAAAAAAAEqbejBk1rxsHVls854RnAyfpJaZacvgwmQ0jxNDBvqgAAAAH1sg76f/////////8AAAABAAAAAQAAAQK4rmgAAAAAAdrAQUAAAAAAAAAAAAAAAAA=",
-            "fee_meta_xdr": "AAAAAgAAAAMCKqh7AAAAAAAAAAA7DT82QeQnHagyW8Dfr+aDwjDTwCW7iYA5DiKVQoQ3mwAAAAFy+PluAhcGUwAAADEAAAAYAAAAAQAAAADEccZDcGLJUGqJNC5TihraQE0vQc8dOiVfQyH3xuDhdQAAAAAAAAAJbG9ic3RyLmNvAAAAAQAAAAAAAAAAAAABAAAACyCBh4AAAAAANaTpRgAAAAAAAAAAAAAAAQIq1TcAAAAAAAAAADsNPzZB5CcdqDJbwN+v5oPCMNPAJbuJgDkOIpVChDebAAAAAXL4+QoCFwZTAAAAMQAAABgAAAABAAAAAMRxxkNwYslQaok0LlOKGtpATS9Bzx06JV9DIffG4OF1AAAAAAAAAAlsb2JzdHIuY28AAAABAAAAAAAAAAAAAAEAAAALIIGHgAAAAAA1pOlGAAAAAAAAAAA=",
-            "memo_type": "text",
-            "signatures": [
-                "lHkJGuRcX6TfZInpGZM7zDx7njBFMTQcem7A55rXW61OnJqFxZrSoYAu/mz1feyYYHR7SPQI/GXJvw22GLp9BQ=="
-            ],
-            "ledger_attr": 36361527
-        }
-    }));
-}

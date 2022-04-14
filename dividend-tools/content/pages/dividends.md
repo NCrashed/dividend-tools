@@ -4,6 +4,7 @@ path = "dividends"
 template = "page.html"
 +++
 <script src="../js/global.js" defer></script>
+<script src="../js/delegate.js" defer></script>
 <script src="../js/shareholders.js" defer></script>
 <script src="../js/dividends.js" defer></script>
 

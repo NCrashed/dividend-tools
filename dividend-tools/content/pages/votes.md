@@ -4,13 +4,14 @@ path = "votes"
 template = "page.html"
 +++
 <script src="../js/global.js" defer></script>
+<script src="../js/delegate.js" defer></script>
 <script src="../js/shareholders.js" defer></script>
 <script src="../js/votes.js" defer></script>
 
 <div class="tab-bar">
   <button class="tab-bar-item btn" onclick="openTab('MTL')">MTL</button>
   <button class="tab-bar-item btn" onclick="openTab('MTLCITY')">MTLCITY</button>
-</div> 
+</div>
 
 <div id="MTL" class="tab">
   <h4>MTL votes: <span id="mtl_votes_total"></span></h4>

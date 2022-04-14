@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
 
-    <title>Delegation</title>
+    <title>Vote delegation</title>
     <meta name="description" content="Provides online tooling for Stellar transactions">
 
     <link rel="stylesheet" href="https:&#x2F;&#x2F;ncrashed.github.io&#x2F;dividend-tools&#x2F;main.css">
@@ -51,29 +51,25 @@
 
 <article class="post">
     <header>
-        <h1>Delegation</h1>
+        <h1>Vote delegation</h1>
     </header>
     <div class="content">
-        <script src="../js/cytoscape.min.js" defer></script>
-<script src="../js/global.js" defer></script>
-<script src="../js/shareholders.js" defer></script>
+        <script src="../js/global.js" defer></script>
 <script src="../js/delegate.js" defer></script>
-<div id="deletate"></div>
 <table id="delegate-table" class="display">
   <thead>
     <tr>
-      <th>#</th>
-      <th>Tx</th>
-      <th>From</th>
-      <th>To</th>
-      <th>Time</th>
+      <th>Delegated To</th>
+      <th>Delegated From</th>
+      <th>MTL</th>
+      <th>MTLCity</th>
     </tr>
   </thead>
   <tbody
 </tbody>
 </table>
 <script>
-  window.onload = function(){ drawDelegation(); };
+  window.onload = function(){ drawDelegated(); };
 </script>
 
     </div>
