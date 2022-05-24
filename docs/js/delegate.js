@@ -15,7 +15,10 @@ function fillDelegations(accounts) {
 
 /// Find delegation data entry in account and return it parsed or return null if there is no delegation
 function getAccountDelegation(account) {
-    if ('delegate' in account.data_attr) {
+    if ('mtl_delegate' in account.data_attr) {
+        let target = atob(account.data_attr.mtl_delegate);
+        return target;
+    } else if ('delegate' in account.data_attr) {
         let target = atob(account.data_attr.delegate);
         return target;
     }
