@@ -29,4 +29,5 @@ anpu_menu_links = [
     { url = "$BASE_URL/blacklist/", name = "Blacklist" },
     { url = "$BASE_URL/votes/", name = "Votes" },
     { url = "$BASE_URL/delegate/", name = "Delegation" },
+    { url = "$BASE_URL/donate/", name = "Donations" },
 ]
