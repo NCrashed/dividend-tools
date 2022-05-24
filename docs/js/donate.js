@@ -17,7 +17,7 @@ function getAccountDonations(account) {
     let res = new Array();
     for (const [key, value] of Object.entries(account.data_attr)) {
         if (key.includes('mtl_donate')) {
-            let amount = parseInt(key.split('=')[1]);
+            let amount = parseFloat(key.split('=')[1]);
             let target = atob(account.data_attr[key]);
             console.log(`${key}: ${amount} => ${target}`);
             res.push({
