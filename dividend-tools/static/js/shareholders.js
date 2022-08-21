@@ -44,6 +44,7 @@ async function loadShareholders(mtl, mtl_city, eurmtl, mtl_rect) {
     var delegated = fillDelegations(data);
     console.log(delegated);
     data = data.map( a => {
+      a.mtl_delegated = getDelegatedMtl(delegated, a.account_id);
       a.mtl_with_delegation = a.mtl_balance + getDelegatedMtl(delegated, a.account_id);
       a.mtl_city_with_delegation = a.mtl_city_full + getDelegatedCity(delegated, a.account_id);
       return a;

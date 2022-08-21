@@ -42,6 +42,9 @@ async function drawVotes() {
     var mtl_data = data.map(a => [
       i++,
       makeAccountUrl(a.account_id),
+      a.mtl_balance,
+      a.mtl_delegated,
+      a.mtl_with_delegation,
       a.mtl_vote,
       a.mtl_vote_blockchain,
       a.mtl_issuer_vote_blockchain,
@@ -50,7 +53,7 @@ async function drawVotes() {
       data: mtl_data,
       pageLength: 100,
       createdRow: function(row, data, dataIndex) {
-        if (data[2] != data[3] || data[2] != data[4]) {
+        if (data[5] != data[6] || data[5] != data[7]) {
           $(row).addClass('red-row');
         } else if (data[0] > 20)  {
           $(row).addClass('grey-row');

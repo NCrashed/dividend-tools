@@ -22,6 +22,9 @@ template = "page.html"
       <tr>
         <th>#</th>
         <th>Account</th>
+        <th>MTL shares</th>
+        <th>MTL delegated</th>
+        <th>MTL mandates</th>
         <th>MTL votes expected</th>
         <th>MTL votes blockchain</th>
         <th>MTL issuer votes blockchain</th>
