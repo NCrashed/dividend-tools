@@ -147,5 +147,5 @@ async function loadAccounts(mtl, mtl_city, mtl_rect) {
 
 function makeAccountUrl(id) {
   return '<a href="https://stellar.expert/explorer/public/account/' +
-    id + '">' + id.substring(0,10) + '...' + id.substr(id.length - 10) + '</a>';
+    id + '">' + id.substring(0, 6) + '...' + id.substr(id.length - 60) + '</a>';
 }
