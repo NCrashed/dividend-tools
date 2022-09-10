@@ -37,7 +37,7 @@ async function drawVotes() {
     $("#mtl_city_votes_threshold").text(data.mtl_city_votes_threshold);
 
     data = data.holders.filter(a => a.mtl_vote + a.mtl_city_vote + a.mtl_vote_blockchain + a.mtl_issuer_vote_blockchain + a.mtl_city_vote_blockchain  > 0);
-    data = data.sort((a, b) => (b.mtl_vote > 0 ? b.mtl_balance : 0) - (a.mtl_vote > 0 ? a.mtl_balance : 0));
+    data = data.sort((a, b) => b.mtl_with_delegation - a.mtl_with_delegation);
     var i = 1;
     var mtl_data = data.map(a => [
       i++,
@@ -51,9 +51,12 @@ async function drawVotes() {
       ]);
     var mtl_table = $('#votes-table-mtl').DataTable({
       data: mtl_data,
-      pageLength: 100,
+      pageLength: 50,
       createdRow: function(row, data, dataIndex) {
-        if (data[5] != data[6] || data[5] != data[7]) {
+        if (data[0] > 20) {
+            data[5] = 0;
+        }
+        if (data[5] !== data[6] || data[5] !== data[7]) {
           $(row).addClass('red-row');
         } else if (data[0] > 20)  {
           $(row).addClass('grey-row');
