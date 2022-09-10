@@ -109,7 +109,7 @@ function log2(x) {
 }
 
 function calcLogVote(x) {
-  return Math.round(Math.max(0, log2(x / 1000))) + 1; // changed from 100 to 600 in https://stellar.expert/explorer/public/tx/193024acd8069bb990273e96f59e1622b065ef39ed1df8963c43073a7d66d8cb
+  return Math.round(Math.max(0, log2(x / 1000))) + 1; // Updated by https://t.me/c/1239694752/53534
 }
 
 async function loadAssetAccounts(asset, accumulated_accounts) {
