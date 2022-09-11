@@ -33,6 +33,18 @@ template = "page.html"
     <tbody>
   </table>
 
+  <h4>Logarithm:</h4>
+
+  <table id="votes-table-mtl-logarithm" class="display">
+    <thead>
+      <tr>
+        <th>Shares</th>
+        <th>Votes</th>
+      </tr>
+    </thead>
+    <tbody>
+  </table>
+
 </div>
 
 <div id="MTLCITY" class="tab" style="display:none">
