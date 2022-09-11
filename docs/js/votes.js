@@ -64,6 +64,26 @@ async function drawVotes() {
       },
     });
 
+    //region Show Logarithm
+    let max_mtl = -Infinity;
+    data.forEach(item => { max_mtl =  item.mtl_with_delegation > max_mtl ? item.mtl_with_delegation :  max_mtl; })
+
+    let last_weight = calcLogVote(max_mtl+1);
+    let mtl_logarithm = [[1, 1]];
+    for(let j = Math.round(max_mtl); j > 0; j--) {
+        if (calcLogVote(j) !== last_weight) {
+            mtl_logarithm[mtl_logarithm.length] = [
+                j+1,
+                calcLogVote(j+1)
+            ];
+            last_weight = calcLogVote(j);
+        }
+    }
+    $('#votes-table-mtl-logarithm').DataTable({
+        data: mtl_logarithm
+    });
+    //endregion
+
     data = data.sort((a, b) => b.mtl_city_share - a.mtl_city_share);
     i = 1;
     var city_data = data.map(a => [
