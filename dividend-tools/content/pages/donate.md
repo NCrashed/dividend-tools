@@ -1,5 +1,5 @@
 +++
-title = "Vote delegation"
+title = "Donates"
 path = "donate"
 template = "page.html"
 +++
